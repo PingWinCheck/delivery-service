@@ -18,7 +18,7 @@ class JWT(BaseModel):
     algorithm: str
 
 class DB(BaseModel):
-    engine: str
+    driver: str
     host: str
     port: int
     user: str
@@ -27,7 +27,7 @@ class DB(BaseModel):
 
     @property
     def url(self):
-        return f'{self.engine}://{self.user}:{self.password}@{self.host}:{self.port}/{self.name}'
+        return f'{self.driver}://{self.user}:{self.password}@{self.host}:{self.port}/{self.name}'
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=env_path, env_nested_delimiter='__')
