@@ -11,4 +11,6 @@ dependencies = [
     "uvicorn>=0.38.0",
     "pyjwt[crypto]>=2.10.1",
     "python-multipart>=0.0.20",
+    "alembic>=1.17.1",
+    "sqlalchemy[asyncpg]>=2.0.44",
 ]

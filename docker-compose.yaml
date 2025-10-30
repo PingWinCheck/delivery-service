@@ -1,0 +1,14 @@
+services:
+  db:
+    container_name: postgres
+    image: postgres:latest
+    ports:
+      - "5433:5432"
+    env_file:
+      - .env
+    environment:
+      POSTGRES_PASSWORD: ${DB__PASSWORD}
+      POSTGRES_USER: ${DB__USER}
+      POSTGRES_DB: ${DB__NAME}
+    volumes:
+      - ./volume/postgres:/var/lib/postgresql/data

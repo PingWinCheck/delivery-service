@@ -17,11 +17,24 @@ class JWT(BaseModel):
     public_key: str | None = None
     algorithm: str
 
+class DB(BaseModel):
+    engine: str
+    host: str
+    port: int
+    user: str
+    password: str
+    name: str
+
+    @property
+    def url(self):
+        return f'{self.engine}://{self.user}:{self.password}@{self.host}:{self.port}/{self.name}'
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=env_path, env_nested_delimiter='__')
 
     app: App
     login_proxy: LoginProxy
     jwt: JWT
+    db: DB
 
 conf = Settings()
