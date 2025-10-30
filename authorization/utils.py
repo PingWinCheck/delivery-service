@@ -1,4 +1,6 @@
 from typing import Sequence
+from jwt.exceptions import ExpiredSignatureError
+from .exceptions import ExpiredToken
 
 import jwt
 
@@ -9,5 +11,8 @@ class JWT:
         self.algorithms = algorithms
 
     def decode(self, token: str) -> dict:
-        decode_ = jwt.decode(jwt=token, key=self.key, algorithms=self.algorithms)
+        try:
+            decode_ = jwt.decode(jwt=token, key=self.key, algorithms=self.algorithms)
+        except ExpiredSignatureError:
+            raise ExpiredToken
         return decode_
