@@ -30,3 +30,8 @@ async def proxy_login(credentials: Annotated[OAuth2PasswordRequestForm, Depends(
 @router.get('/secret')
 async def secret(payload: Annotated[dict, Depends(token)]):
     return payload
+
+
+@router.get('/me')
+async def me(payload: Annotated[dict, Depends(token)]):
+    pass

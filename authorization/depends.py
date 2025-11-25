@@ -2,8 +2,11 @@ from typing import Annotated
 
 from fastapi import Depends
 from fastapi.security.oauth2 import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from core import conf
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from core import conf, get_async_session
 from .utils import JWT
+from .dao import UserDAO
 
 # bearer = OAuth2PasswordBearer(tokenUrl='authorization/proxy-login')
 bearer = OAuth2PasswordBearer(tokenUrl=str(conf.login_proxy.url))
