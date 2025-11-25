@@ -17,7 +17,6 @@ class User(Base):
 class Role(Base):
     __tablename__ = 'roles'
     title: Mapped[str] = mapped_column(unique=True)
-    user_id: Mapped[UUID] = mapped_column(ForeignKey('users.id'))
     permission: Mapped[list['Permission']] = relationship('Permission',
                                                           secondary='role_permission_associations',
                                                           back_populates='role')
