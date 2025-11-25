@@ -1,14 +1,20 @@
-from typing import Annotated
+from typing import Annotated, TYPE_CHECKING
 
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 import aiohttp
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from .schemas import LoginSchema
-from core import conf, get_logger
-from .depends import token
+from core import conf, get_logger, get_async_session
+from .depends import token, get_user
 from .utils import JWT
 
 from fastapi.security import OAuth2PasswordRequestForm
+
+
+if TYPE_CHECKING:
+    from .models import User
 
 log = get_logger(__name__)
 
@@ -33,5 +39,5 @@ async def secret(payload: Annotated[dict, Depends(token)]):
 
 
 @router.get('/me')
-async def me(payload: Annotated[dict, Depends(token)]):
-    pass
+async def me(user: Annotated["User", Depends(get_user)]):
+    return user

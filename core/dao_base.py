@@ -19,6 +19,7 @@ class DAOBase:
     async def get_by_id(cls, id_, session: "AsyncSession", ) -> "Base":
         return await session.get(cls.model, id_)
 
+#TODO: Не работает вроде
     @classmethod
     async def get_by_filter(cls, session: "AsyncSession", **filter_) -> Sequence["Base"]:
         query = select(cls.model)
