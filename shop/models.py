@@ -26,6 +26,7 @@ class Shop(Base):
     reviewed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True),
                                                   onupdate=lambda: datetime.now(tz=timezone.utc))
     reviewed_by_id: Mapped[UUID] = mapped_column(ForeignKey('users.id'))
+    reason: Mapped[str | None] = None
 
 class Address(Base):
     __tablename__ = 'addresses'
@@ -53,4 +54,5 @@ class ShopVersion(Base):
     reviewed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True),
                                                   onupdate=lambda: datetime.now(tz=timezone.utc))
     reviewed_by_id: Mapped[UUID] = mapped_column(ForeignKey('users.id'))
+    reason: Mapped[str | None] = None
 
