@@ -2,9 +2,13 @@ from datetime import datetime, timezone
 from uuid import UUID
 from enum import Enum
 from sqlalchemy import Enum as SAEnum, DateTime, ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from core.database import Base
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from authorization.models import User
 
 
 class ApplicationStatus(str, Enum):
@@ -23,10 +27,14 @@ class Shop(Base):
     status: Mapped["ApplicationStatus"] = mapped_column(SAEnum(ApplicationStatus),
                                                         name='application_status',
                                                         default=ApplicationStatus.PENDING)
-    reviewed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True),
-                                                  onupdate=lambda: datetime.now(tz=timezone.utc))
-    reviewed_by_id: Mapped[UUID] = mapped_column(ForeignKey('users.id'))
-    reason: Mapped[str | None] = None
+    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    reviewed_by_id: Mapped[UUID | None] = mapped_column(ForeignKey('users.id'))
+    reason: Mapped[str | None]
+
+    address: Mapped["Address"] = relationship(back_populates="shop")
+    owner: Mapped["User"] = relationship(back_populates='shop')
+    reviewed_by: Mapped["User"] = relationship(back_populates='review_shop')
+    shop_versions: Mapped[list["ShopVersion"]] = relationship(back_populates='shop')
 
 class Address(Base):
     __tablename__ = 'addresses'
@@ -38,6 +46,8 @@ class Address(Base):
     latitude: Mapped[float]
     longitude: Mapped[float]
 
+    shop: Mapped["Shop"] = relationship(back_populates='address')
+    address_version: Mapped["ShopVersion"] = relationship('address')
 
 
 class ShopVersion(Base):
@@ -51,8 +61,11 @@ class ShopVersion(Base):
     status: Mapped["ApplicationStatus"] = mapped_column(SAEnum(ApplicationStatus),
                                                         name='application_status',
                                                         default=ApplicationStatus.PENDING)
-    reviewed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True),
-                                                  onupdate=lambda: datetime.now(tz=timezone.utc))
-    reviewed_by_id: Mapped[UUID] = mapped_column(ForeignKey('users.id'))
-    reason: Mapped[str | None] = None
+    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    reviewed_by_id: Mapped[UUID | None] = mapped_column(ForeignKey('users.id'))
+    reason: Mapped[str | None]
 
+    address: Mapped["Address"] = relationship(back_populates="shop")
+    owner: Mapped["User"] = relationship(back_populates='shop')
+    reviewed_by: Mapped["User"] = relationship(back_populates='review_shop')
+    shop: Mapped["Shop"] = relationship(back_populates='shop_versions')

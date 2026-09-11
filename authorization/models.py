@@ -3,6 +3,10 @@ from sqlalchemy import ForeignKey, UniqueConstraint
 from core import Base
 from uuid import UUID, uuid4
 from enum import Enum, auto
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from shop.models import Shop, Address, ShopVersion
 
 
 class User(Base):
@@ -13,6 +17,11 @@ class User(Base):
     role: Mapped[list["Role"]] = relationship('Role',
                                               secondary='user_role_associations',
                                               back_populates='user')
+
+    shops: Mapped[list["Shop"]] = relationship('owner')
+    review_application: Mapped[list["Shop"]] = relationship(back_populates='reviewed_by')
+    shops_versions: Mapped[list["ShopVersion"]] = relationship(back_populates='owner')
+    review_application_version: Mapped[list["ShopVersion"]] = relationship(back_populates='reviewed_by')
 
 class Role(Base):
     __tablename__ = 'roles'
