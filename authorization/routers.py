@@ -25,7 +25,7 @@ router = APIRouter(prefix='/authorization')
 async def proxy_login(credentials: Annotated[OAuth2PasswordRequestForm, Depends()]):
     async with aiohttp.ClientSession() as session:
         async with session.post(str(conf.login_proxy.url),
-                                json={'email': credentials.username,
+                                data={'username': credentials.username,
                                       'password': credentials.password}) as response:
             resp = await response.json()
             log.info('Post request: %r, email: %r',
