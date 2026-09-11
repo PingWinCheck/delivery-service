@@ -18,10 +18,10 @@ class User(Base):
                                               secondary='user_role_associations',
                                               back_populates='user')
 
-    shops: Mapped[list["Shop"]] = relationship('owner')
-    review_application: Mapped[list["Shop"]] = relationship(back_populates='reviewed_by')
-    shops_versions: Mapped[list["ShopVersion"]] = relationship(back_populates='owner')
-    review_application_version: Mapped[list["ShopVersion"]] = relationship(back_populates='reviewed_by')
+    shops: Mapped[list["Shop"]] = relationship(back_populates='owner', foreign_keys="Shop.owner_id")
+    review_application: Mapped[list["Shop"]] = relationship(back_populates='reviewed_by', foreign_keys="Shop.reviewed_by_id")
+    shops_versions: Mapped[list["ShopVersion"]] = relationship(back_populates='owner', foreign_keys="ShopVersion.owner_id")
+    review_application_version: Mapped[list["ShopVersion"]] = relationship(back_populates='reviewed_by', foreign_keys="ShopVersion.reviewed_by_id")
 
 class Role(Base):
     __tablename__ = 'roles'

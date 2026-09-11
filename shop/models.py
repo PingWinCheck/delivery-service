@@ -32,8 +32,8 @@ class Shop(Base):
     reason: Mapped[str | None]
 
     address: Mapped["Address"] = relationship(back_populates="shop")
-    owner: Mapped["User"] = relationship(back_populates='shop')
-    reviewed_by: Mapped["User"] = relationship(back_populates='review_shop')
+    owner: Mapped["User"] = relationship(back_populates='shops', foreign_keys=[owner_id])
+    reviewed_by: Mapped["User"] = relationship(back_populates='review_application', foreign_keys=[reviewed_by_id])
     shop_versions: Mapped[list["ShopVersion"]] = relationship(back_populates='shop')
 
 class Address(Base):
@@ -47,7 +47,7 @@ class Address(Base):
     longitude: Mapped[float]
 
     shop: Mapped["Shop"] = relationship(back_populates='address')
-    address_version: Mapped["ShopVersion"] = relationship('address')
+    address_version: Mapped["ShopVersion"] = relationship(back_populates='address')
 
 
 class ShopVersion(Base):
@@ -65,7 +65,7 @@ class ShopVersion(Base):
     reviewed_by_id: Mapped[UUID | None] = mapped_column(ForeignKey('users.id'))
     reason: Mapped[str | None]
 
-    address: Mapped["Address"] = relationship(back_populates="shop")
-    owner: Mapped["User"] = relationship(back_populates='shop')
-    reviewed_by: Mapped["User"] = relationship(back_populates='review_shop')
+    address: Mapped["Address"] = relationship(back_populates="address_version")
+    owner: Mapped["User"] = relationship(back_populates='shops_versions', foreign_keys=[owner_id])
+    reviewed_by: Mapped["User"] = relationship(back_populates='review_application_version', foreign_keys=[reviewed_by_id])
     shop: Mapped["Shop"] = relationship(back_populates='shop_versions')
