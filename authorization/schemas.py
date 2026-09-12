@@ -11,3 +11,4 @@ class LoginSchema(BaseModel):
 class JWTSchema(BaseModel):
     sub: UUID
     email: EmailStr
+    scopes: str
