@@ -1,6 +1,6 @@
 from typing import Annotated, TYPE_CHECKING
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Security
 from fastapi.responses import JSONResponse
 import aiohttp
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -10,7 +10,8 @@ from core import conf, get_logger, get_async_session
 from .depends import token, get_user
 from .utils import JWT
 
-from fastapi.security import OAuth2PasswordRequestForm
+from fastapi.security import OAuth2PasswordRequestForm, SecurityScopes
+
 
 
 if TYPE_CHECKING:
@@ -33,11 +34,3 @@ async def proxy_login(credentials: Annotated[OAuth2PasswordRequestForm, Depends(
             return JSONResponse(content=resp, status_code=response.status)
 
 
-@router.get('/secret')
-async def secret(payload: Annotated[dict, Depends(token)]):
-    return payload
-
-
-@router.get('/me')
-async def me(user: Annotated["User", Depends(get_user)]):
-    return user
