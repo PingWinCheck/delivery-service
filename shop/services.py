@@ -54,9 +54,18 @@ class ServiceShop:
     async def get_application_by_id(self,
                                     session: AsyncSession,
                                     id_: int):
-        application = await self._repository_shop.get_by_filter(session,
-                                                                id=id_)
+        application = await self._repository_shop.get_by_id(session=session,
+                                                                id_=id_)
         return application
+
+    async def get_application_by_id_with_history(self,
+                                    session: AsyncSession,
+                                    id_: int):
+        application = await self._repository_shop.get_by_id(session=session,
+                                                                id_=id_)
+        application_history = await self._repository_shop_history.get_by_filter(shop_id=application.id,
+                                                                                session=session)
+        return application, application_history
 
     async def change_application_status(self,
                                         session: AsyncSession,
@@ -64,7 +73,7 @@ class ServiceShop:
                                         reviewed_by_id: UUID,
                                         new_status: "ApplicationStatus",
                                         reason: str | None = None) -> "Shop":
-        application: "Shop" = await self._repository_shop.get_by_id(id_=id_, session=session)
+        application = await self._repository_shop.get_by_id(id_=id_, session=session)
         if application is None:
             raise ShopNotFoundException(f'Магазин с id={id_} не найден')
         application.status = new_status

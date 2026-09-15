@@ -1,4 +1,4 @@
-from typing import Annotated, TYPE_CHECKING
+from typing import Annotated, TYPE_CHECKING, Sequence
 
 from fastapi import APIRouter, Depends, HTTPException, status, Security
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -7,7 +7,8 @@ from sqlalchemy.exc import IntegrityError
 from authorization.depends import get_user
 from shop.dao import AddressDAO, ShopDAO, ShopVersionDAO
 from shop.geocode import get_geocode
-from shop.schemas import ShopSchema, ResponseCreateShopApplication, ChangeApplication
+from shop.schemas import ShopCrateSchema, ResponseCreateShopApplicationSchema, ChangeApplication, \
+    ApplicationResponseSchema
 from core.dependencies import get_async_session
 from shop.dependencies import service_shop
 from shop.models import ApplicationStatus
@@ -16,13 +17,13 @@ from shop.models import ApplicationStatus
 if TYPE_CHECKING:
     from authorization.models import User
 
-
+#TODO причесать ответы schemas
 
 router = APIRouter(prefix='/shop')
 
-@router.post('/request-to-create-a-store', response_model=ResponseCreateShopApplication)
+@router.post('/request-to-create-a-store', response_model=ResponseCreateShopApplicationSchema)
 async def request_to_create_a_store(user: Annotated["User", Depends(get_user)],
-                                    shop: ShopSchema,
+                                    shop: ShopCrateSchema,
                                     session: Annotated[AsyncSession, Depends(get_async_session)]):
     #TODO: вынести логику в отельный сервис
     address_raw = f'{shop.address.city} {shop.address.street} {shop.address.home}'
@@ -63,16 +64,26 @@ async def request_to_create_a_store(user: Annotated["User", Depends(get_user)],
     return shop_application
 
 
-@router.get('/application')
+@router.get('/application',
+            # response_model=ApplicationResponseSchema
+            )
 async def get_application(id_: int,
                           user: Annotated["User", Security(get_user, scopes=['d-application-read'])],
-                          session: Annotated[AsyncSession, Depends(get_async_session)]):
-    result = await service_shop.get_application_by_id(session, id_)
+                          session: Annotated[AsyncSession, Depends(get_async_session)],
+                          with_history:bool = False):
+    if not with_history:
+        result = await service_shop.get_application_by_id(session, id_)
+        response = ApplicationResponseSchema(shop=result)
+    else:
+        result = await service_shop.get_application_by_id_with_history(session, id_)
+        response = ApplicationResponseSchema(shop=result[0],
+                                             shop_history=result[1])
+    # return response
     return result
 
 @router.get('/applications')
 async def get_applications(status: ApplicationStatus,
-                           # user: Annotated["User", Security(get_user, scopes=['d-applications-read'])],
+                           user: Annotated["User", Security(get_user, scopes=['d-applications-read'])],
                            session: Annotated[AsyncSession, Depends(get_async_session)],
                            ):
     result = await service_shop.get_all_applications_with_status(session, status=status)
