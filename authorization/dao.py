@@ -10,10 +10,10 @@ if TYPE_CHECKING:
     from pydantic import EmailStr
     from sqlalchemy.ext.asyncio import AsyncSession
 
-class UserDAO(DAOBase):
+class UserDAO(DAOBase[User]):
     model = User
 
     @classmethod
-    async def get_by_email(cls, email: "EmailStr", session: "AsyncSession") -> User:
+    async def get_by_email(cls, email: "EmailStr", session: "AsyncSession") -> User | None:
         query = (select(cls.model).filter_by(email=email).options(joinedload(cls.model.role)))
         return await session.scalar(query)
