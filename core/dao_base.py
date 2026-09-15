@@ -1,14 +1,15 @@
 from sqlalchemy import select
 
-from typing import TYPE_CHECKING, Type, Sequence
+from typing import TYPE_CHECKING, Type, Sequence, ClassVar
 
 if TYPE_CHECKING:
     from .database import Base
     from sqlalchemy.ext.asyncio import AsyncSession
 
 
-class DAOBase:
-    model: Type["Base"] = None
+class DAOBase[ModelT: Base]:
+    #TODO Не совсем корректная аннотация типов, но =None нужно исключительно в рамках проверки на реализацию атрибута model
+    model: ClassVar[type["ModelT"]] = None
 
     def __init_subclass__(cls, **kwargs):
         if cls.model is None:
@@ -16,12 +17,12 @@ class DAOBase:
         super().__init_subclass__(**kwargs)
 
     @classmethod
-    async def get_by_id(cls, id_, session: "AsyncSession", ) -> "Base":
+    async def get_by_id(cls, id_, session: "AsyncSession", ) -> ModelT | None:
         return await session.get(cls.model, id_)
 
 
     @classmethod
-    async def get_by_filter(cls, session: "AsyncSession", **filter_) -> Sequence["Base"]:
+    async def get_by_filter(cls, session: "AsyncSession", **filter_) -> Sequence[ModelT] | None:
         query = select(cls.model)
         for key, value in filter_.items():
             if not hasattr(cls.model, key):
@@ -32,7 +33,7 @@ class DAOBase:
 
 
     @classmethod
-    async def create(cls, session: "AsyncSession", **kwargs) -> "Base":
+    async def create(cls, session: "AsyncSession", **kwargs) -> ModelT:
         instance = cls.model(**kwargs)
         session.add(instance)
         # await session.commit()
