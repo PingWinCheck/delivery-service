@@ -1,11 +1,15 @@
+from typing import Protocol
 from uuid import UUID
 
+from faststream.rabbit import RabbitBroker
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from shop.dao import ShopVersionDAO, ShopDAO
 from shop.exceptions import ShopNotFoundException
 from shop.models import Shop, ApplicationStatus
 from datetime import datetime, timezone
+from core import rabbit_broker
+from shop.schemas import MailSchema
 
 
 class ShopAndShopVersionSyncRepository:
@@ -41,9 +45,11 @@ class ShopAndShopVersionSyncRepository:
 class ServiceShop:
     def __init__(self,
                  repository_shop: type["ShopDAO"],
-                 repository_shop_history: type["ShopVersionDAO"]):
+                 repository_shop_history: type["ShopVersionDAO"],
+                 mail_service: "MailService"):
         self._repository_shop = repository_shop
         self._repository_shop_history = repository_shop_history
+        self.mail_service = mail_service
 
     async def get_all_applications_with_status(self,
                                    session: AsyncSession,
@@ -73,7 +79,7 @@ class ServiceShop:
                                         reviewed_by_id: UUID,
                                         new_status: "ApplicationStatus",
                                         reason: str | None = None) -> "Shop":
-        application = await self._repository_shop.get_by_id(id_=id_, session=session)
+        application = await self._repository_shop.get_by_id(id_=id_, session=session, owner=True)
         if application is None:
             raise ShopNotFoundException(f'Магазин с id={id_} не найден')
         application.status = new_status
@@ -96,5 +102,27 @@ class ServiceShop:
         ))
 
         await session.commit()
+        await self.mail_service.send_mail(
+            MailSchema(msg=f'Статус заявки <{application.title}> был изменён на {application.status.value}',
+                       subject=f'Заявка на открытие {application.title}',
+                       recipient=application.owner.email)
+        )
 
         return application
+
+
+class MailService(Protocol):
+    async def send_mail(self, msg: MailSchema) -> None:
+        ...
+
+
+class RabbitMailService:
+    def __init__(self,
+                 broker: RabbitBroker):
+        self.broker = broker
+
+    async def send_mail(self, msg: MailSchema) -> None:
+        await self.broker.publish(
+            message=msg.model_dump(mode='json'),
+            queue='send-email'
+        )

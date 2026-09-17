@@ -26,8 +26,18 @@ class DB(BaseModel):
     name: str
 
     @property
-    def url(self):
+    def url(self) -> str:
         return f'{self.driver}://{self.user}:{self.password}@{self.host}:{self.port}/{self.name}'
+
+class Rabbit(BaseModel):
+    host: str
+    user: str
+    password: str
+    port: int
+
+    @property
+    def url(self) -> str:
+        return f'amqp://{self.user}:{self.password}@{self.host}:{self.port}/'
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=env_path, env_nested_delimiter='__')
@@ -36,5 +46,6 @@ class Settings(BaseSettings):
     login_proxy: LoginProxy
     jwt: JWT
     db: DB
+    rabbit: Rabbit
 
 conf = Settings()

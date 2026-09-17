@@ -1,7 +1,8 @@
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, EmailStr
+
 
 from shop.models import ApplicationStatus
 
@@ -44,4 +45,9 @@ class ShopHistorySchema(ShopSchema):
 class ApplicationResponseSchema(BaseModel):
     shop: ShopSchema
     shop_history: list[ShopHistorySchema] | None = None
+
+class MailSchema(BaseModel):
+    msg: str
+    recipient: EmailStr
+    subject: str
 

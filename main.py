@@ -1,15 +1,26 @@
 
 from fastapi import FastAPI, HTTPException, status
 import uvicorn
-from core import conf
+from core import conf, rabbit_broker
 from authorization import router_authorization
 from shop import router_shop
 from shop.exceptions import ShopNotFoundException
+from contextlib import asynccontextmanager
 
-app = FastAPI(title='Delivery service')
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await rabbit_broker.start()
+    yield
+    await rabbit_broker.stop()
+
+app = FastAPI(title='Delivery service',
+              lifespan=lifespan)
 
 app.include_router(router_authorization)
 app.include_router(router_shop)
+
 
 
 @app.exception_handler(ShopNotFoundException)
