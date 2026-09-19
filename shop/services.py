@@ -57,6 +57,13 @@ class ServiceShop:
         application_pending = await self._repository_shop.get_by_filter(session, status=status.value)
         return application_pending
 
+    async def get_all_applications_me(self,
+                                      user_id: UUID,
+                                      session: AsyncSession):
+        applications_me = await self._repository_shop.get_by_filter(session=session,
+                                                                    owner_id=user_id)
+        return applications_me
+
     async def get_application_by_id(self,
                                     session: AsyncSession,
                                     id_: int):

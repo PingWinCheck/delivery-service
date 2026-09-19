@@ -1,3 +1,4 @@
+from encodings.rot_13 import rot13
 from typing import Annotated, TYPE_CHECKING, Sequence
 
 from fastapi import APIRouter, Depends, HTTPException, status, Security
@@ -88,6 +89,12 @@ async def get_applications(status: ApplicationStatus,
                            ):
     result = await service_shop.get_all_applications_with_status(session, status=status)
     return result
+
+@router.get('/applications/me')
+async def get_applications_me(user: Annotated["User", Depends(get_user)],
+                              session: Annotated[AsyncSession, Depends(get_async_session)]):
+    return await service_shop.get_all_applications_me(session=session,
+                                                      user_id=user.id)
 
 @router.patch('/application')
 async def change_status_application(change: ChangeApplication,
