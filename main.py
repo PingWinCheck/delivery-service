@@ -1,4 +1,3 @@
-
 from fastapi import FastAPI, HTTPException, status
 import uvicorn
 from core import conf, rabbit_broker

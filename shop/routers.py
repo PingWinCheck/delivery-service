@@ -1,4 +1,3 @@
-from encodings.rot_13 import rot13
 from typing import Annotated, TYPE_CHECKING, Sequence
 
 from fastapi import APIRouter, Depends, HTTPException, status, Security
@@ -6,11 +5,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
 
 from authorization.depends import get_user
+from core.schemas import PagerOutputSchema, ResponseForPageSchema
 from shop.dao import AddressDAO, ShopDAO, ShopVersionDAO
 from shop.geocode import get_geocode
 from shop.schemas import ShopCrateSchema, ResponseCreateShopApplicationSchema, ChangeApplication, \
-    ApplicationResponseSchema
-from core.dependencies import get_async_session
+    ApplicationResponseSchema, ShopSchema
+from core.dependencies import get_async_session, pager
 from shop.dependencies import service_shop
 from shop.models import ApplicationStatus
 
@@ -91,10 +91,15 @@ async def get_applications(status: ApplicationStatus,
     return result
 
 @router.get('/applications/me')
-async def get_applications_me(user: Annotated["User", Depends(get_user)],
-                              session: Annotated[AsyncSession, Depends(get_async_session)]):
-    return await service_shop.get_all_applications_me(session=session,
-                                                      user_id=user.id)
+async def get_applications_me(pager: Annotated[PagerOutputSchema, Depends(pager)],
+                              user: Annotated["User", Depends(get_user)],
+                              session: Annotated[AsyncSession, Depends(get_async_session)],
+                              ) -> ResponseForPageSchema[Sequence[ShopSchema]]:
+    data, meta = await service_shop.get_all_applications_me(session=session,
+                                                      user_id=user.id,
+                                                      offset=pager.offset,
+                                                      limit=pager.limit)
+    return ResponseForPageSchema(data=data, meta=meta)
 
 @router.patch('/application')
 async def change_status_application(change: ChangeApplication,

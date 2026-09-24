@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import select, func
 
 from typing import TYPE_CHECKING, Type, Sequence, ClassVar
 
@@ -22,12 +22,20 @@ class DAOBase[ModelT: Base]:
 
 
     @classmethod
-    async def get_by_filter(cls, session: "AsyncSession", **filter_) -> Sequence[ModelT] | None:
+    async def get_by_filter(cls,
+                            session: "AsyncSession",
+                            limit: int | None = None,
+                            offset: int | None = None,
+                            **filter_) -> Sequence[ModelT] | None:
         query = select(cls.model)
         for key, value in filter_.items():
             if not hasattr(cls.model, key):
                 raise AttributeError(f'Модель {cls.model.__name__} не имеет аттрибута {key}')
             query = query.filter(getattr(cls.model, key) == value)
+        if limit:
+            query = query.limit(limit)
+        if offset:
+            query = query.offset(offset)
         result = await session.execute(query)
         return result.scalars().all()
 
@@ -39,3 +47,13 @@ class DAOBase[ModelT: Base]:
         # await session.commit()
         await session.flush()
         return instance
+
+    @classmethod
+    async def count_with_filter_by(cls,
+                         session: "AsyncSession",
+                         **filter_by) -> int | None:
+        query = (
+            select(func.count(cls.model.id)).filter_by(**filter_by)
+        )
+        return (await session.execute(query)).scalar_one_or_none()
+

@@ -59,10 +59,18 @@ class ServiceShop:
 
     async def get_all_applications_me(self,
                                       user_id: UUID,
+                                      offset: int,
+                                      limit: int,
                                       session: AsyncSession):
+
         applications_me = await self._repository_shop.get_by_filter(session=session,
-                                                                    owner_id=user_id)
-        return applications_me
+                                                                    owner_id=user_id,
+                                                                    limit=limit,
+                                                                    offset=offset)
+        total = await self._repository_shop.count_with_filter_by(session=session,
+                                                                 owner_id=user_id)
+        meta = {'total': total}
+        return applications_me, meta
 
     async def get_application_by_id(self,
                                     session: AsyncSession,
